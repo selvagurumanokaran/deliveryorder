@@ -16,11 +16,11 @@ import com.geeks.guru.dto.order.DeliveryStatus;
 @Repository
 public interface OrdersRepository extends PagingAndSortingRepository<DeliveryOrder, Integer> {
 
-	@Query("SELECT o FROM DeliveryOrder o")
-	List<DeliveryOrder> findAllPagedOrder(Pageable pageable);
+    @Query("SELECT o FROM DeliveryOrder o")
+    List<DeliveryOrder> findAllPagedOrder(Pageable pageable);
 
-	@Transactional
-	@Modifying
-	@Query("UPDATE DeliveryOrder SET status = :status  WHERE id = :id and status != :status")
-	int updateOrderStatus(@Param("id") Integer id, @Param("status") DeliveryStatus status);
+    @Transactional
+    @Modifying
+    @Query("UPDATE DeliveryOrder SET status = :status  WHERE id = :id and status != :status")
+    int updateOrderStatus(@Param("id") Integer id, @Param("status") DeliveryStatus status);
 }

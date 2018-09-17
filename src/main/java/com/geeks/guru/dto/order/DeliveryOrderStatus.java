@@ -5,24 +5,24 @@ import javax.validation.constraints.Pattern;
 
 public class DeliveryOrderStatus {
 
-	@NotNull(message = "Status cannot be empty.")
-	@Pattern(regexp = "taken", message = "Status can only be 'taken'.")
-	private String status;
+    @NotNull(message = "Status cannot be empty.")
+    @Pattern(regexp = "taken", message = "Status can only be 'taken'.")
+    private String status;
 
-	public DeliveryOrderStatus() {
+    public DeliveryOrderStatus() {
 
-	}
+    }
 
-	public DeliveryOrderStatus(String status) {
-		this.status = status;
-	}
+    public DeliveryOrderStatus(String status) {
+	this.status = status;
+    }
 
-	public String getStatus() {
-		return status;
-	}
+    public String getStatus() {
+	return status;
+    }
 
-	public void setStatus(String status) {
-		this.status = status;
-	}
+    public void setStatus(String status) {
+	this.status = status;
+    }
 
 }

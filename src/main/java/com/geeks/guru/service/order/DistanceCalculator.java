@@ -1,28 +1,23 @@
 package com.geeks.guru.service.order;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import com.google.maps.DistanceMatrixApi;
+import com.google.maps.GeoApiContext;
+import com.google.maps.model.DistanceMatrix;
 
 @Component
 public class DistanceCalculator {
 
-	public static double distance(double startLatitude, double startLongitude, double endLatitude,
-			double endLongitude) {
-		double theta = startLongitude - endLongitude;
-		double dist = Math.sin(degree2radian(startLatitude)) * Math.sin(degree2radian(endLatitude))
-				+ Math.cos(degree2radian(startLatitude)) * Math.cos(degree2radian(endLatitude))
-						* Math.cos(degree2radian(theta));
-		dist = Math.acos(dist);
-		dist = radian2degree(dist);
-		dist = dist * 60 * 1.1515;
-		dist = dist * 1.609344;
-		return dist;
-	}
+    @Value("${com.geeks.guru.google.apikey}")
+    private String apiKey;
 
-	private static double degree2radian(double degree) {
-		return (degree * Math.PI / 180.0);
-	}
-
-	private static double radian2degree(double radian) {
-		return (radian * 180 / Math.PI);
-	}
+    public String calculateDistance(Double[] origin, Double[] destination) throws NullPointerException, Exception {
+	GeoApiContext context = new GeoApiContext().setApiKey(apiKey);
+	String[] origins = { origin[0] + "," + origin[1] };
+	String[] destinations = { destination[0] + "," + destination[1] };
+	DistanceMatrix matrixResult = DistanceMatrixApi.getDistanceMatrix(context, origins, destinations).await();
+	return matrixResult.rows[0].elements[0].distance.humanReadable;
+    }
 }

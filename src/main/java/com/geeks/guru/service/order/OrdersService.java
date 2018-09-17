@@ -14,28 +14,28 @@ import com.geeks.guru.repository.order.OrdersRepository;
 @Service
 public class OrdersService {
 
-	@Autowired
-	private OrdersRepository ordersRepository;
+    @Autowired
+    private OrdersRepository ordersRepository;
 
-	public List<DeliveryOrder> getAllOrders(Pageable pageable) {
-		return (List<DeliveryOrder>) ordersRepository.findAllPagedOrder(pageable);
-	}
+    @Autowired
+    private DistanceCalculator distanceCalculator;
 
-	public DeliveryOrder createOrder(DeliveryOrderRequest request) {
-		Double[] origins = request.getOrigin();
-		Double[] destinations = request.getDestination();
-		//double distance = DistanceCalculator.distance(Double.parseDouble(origins[0]), Double.parseDouble(origins[1]),
-		//		Double.parseDouble(destinations[0]), Double.parseDouble(destinations[1]));
-		double distance = DistanceCalculator.distance(origins[0], origins[1],
-				destinations[0], destinations[1]);
-		return ordersRepository.save(new DeliveryOrder(distance, DeliveryStatus.UNASSIGN));
-	}
+    public List<DeliveryOrder> getAllOrders(Pageable pageable) {
+	return (List<DeliveryOrder>) ordersRepository.findAllPagedOrder(pageable);
+    }
 
-	public int updateStatus(String id) {
-		return ordersRepository.updateOrderStatus(Integer.parseInt(id), DeliveryStatus.SUCCESS);
-	}
+    public DeliveryOrder createOrder(DeliveryOrderRequest request) throws Exception {
+	Double[] origins = request.getOrigin();
+	Double[] destinations = request.getDestination();
+	String distance = distanceCalculator.calculateDistance(origins, destinations);
+	return ordersRepository.save(new DeliveryOrder(distance, DeliveryStatus.UNASSIGN));
+    }
 
-	public DeliveryOrder findOrderById(String id) {
-		return ordersRepository.findById(Integer.parseInt(id)).get();
-	}
+    public int updateStatus(String id) {
+	return ordersRepository.updateOrderStatus(Integer.parseInt(id), DeliveryStatus.SUCCESS);
+    }
+
+    public DeliveryOrder findOrderById(String id) {
+	return ordersRepository.findById(Integer.parseInt(id)).get();
+    }
 }

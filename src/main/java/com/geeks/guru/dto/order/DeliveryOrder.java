@@ -8,43 +8,43 @@ import javax.persistence.Id;
 @Entity
 public class DeliveryOrder {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private int id;
-	private double distance;
-	private DeliveryStatus status;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private int id;
+    private String distance;
+    private DeliveryStatus status;
 
-	public DeliveryOrder() {
+    public DeliveryOrder() {
 
-	}
+    }
 
-	public DeliveryOrder(double distance, DeliveryStatus status) {
-		this.distance = distance;
-		this.status = status;
-	}
+    public DeliveryOrder(String distance, DeliveryStatus status) {
+	this.distance = distance;
+	this.status = status;
+    }
 
-	public int getId() {
-		return id;
-	}
+    public int getId() {
+	return id;
+    }
 
-	public void setId(int id) {
-		this.id = id;
-	}
+    public void setId(int id) {
+	this.id = id;
+    }
 
-	public double getDistance() {
-		return distance;
-	}
+    public String getDistance() {
+	return distance;
+    }
 
-	public void setDistance(double distance) {
-		this.distance = distance;
-	}
+    public void setDistance(String distance) {
+	this.distance = distance;
+    }
 
-	public DeliveryStatus getStatus() {
-		return status;
-	}
+    public DeliveryStatus getStatus() {
+	return status;
+    }
 
-	public void setStatus(DeliveryStatus status) {
-		this.status = status;
-	}
+    public void setStatus(DeliveryStatus status) {
+	this.status = status;
+    }
 
 }
