@@ -1,10 +1,14 @@
 package com.geeks.guru.dto.order;
 
-public class OrderException {
+public class OrderErrorDetail {
 
-    String error;
+    private String error;
 
-    public OrderException(String error) {
+    public OrderErrorDetail() {
+
+    }
+
+    public OrderErrorDetail(String error) {
 	this.error = error;
     }
 

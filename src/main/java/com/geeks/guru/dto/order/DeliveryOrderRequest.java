@@ -21,4 +21,12 @@ public class DeliveryOrderRequest {
 	return destination;
     }
 
+    public void setOrigin(Double[] origin) {
+	this.origin = origin;
+    }
+
+    public void setDestination(Double[] destination) {
+	this.destination = destination;
+    }
+
 }

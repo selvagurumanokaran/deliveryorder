@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.geeks.guru.dto.order.DeliveryOrderRequest;
 import com.geeks.guru.dto.order.DeliveryOrderStatus;
 import com.geeks.guru.dto.order.DeliveryStatus;
-import com.geeks.guru.dto.order.OrderException;
+import com.geeks.guru.dto.order.OrderErrorDetail;
 import com.geeks.guru.service.order.OrdersService;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
@@ -36,7 +36,7 @@ public class OrdersController {
 	try {
 	    return ResponseEntity.ok(ordersService.getAllOrders(PageRequest.of(page, limit)));
 	} catch (Exception e) {
-	    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new OrderException(("Failed to fetch orders.")));
+	    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new OrderErrorDetail(("Failed to fetch orders.")));
 	}
     }
 
@@ -48,9 +48,9 @@ public class OrdersController {
 	try {
 	    return ResponseEntity.ok(ordersService.createOrder(request));
 	} catch (NullPointerException e) {
-	    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new OrderException(("Failed to calculate distance. Please provide valid coordinates.")));
+	    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new OrderErrorDetail(("Failed to calculate distance. Please provide valid coordinates.")));
 	} catch (Exception e) {
-	    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new OrderException(("Failed to create an order.")));
+	    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new OrderErrorDetail(("Failed to create an order.")));
 	}
     }
 
@@ -63,25 +63,25 @@ public class OrdersController {
 	    try {
 		ordersService.findOrderById(id);
 	    } catch (NoSuchElementException ex) {
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new OrderException("Order does not exist."));
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new OrderErrorDetail("Order does not exist."));
 	    }
 	    int updatedCount = ordersService.updateStatus(id);
 
 	    if (updatedCount > 0) {
 		return ResponseEntity.ok(new DeliveryOrderStatus(DeliveryStatus.SUCCESS.name()));
 	    }
-	    return ResponseEntity.status(HttpStatus.CONFLICT).body(new OrderException("Order already taken."));
+	    return ResponseEntity.status(HttpStatus.CONFLICT).body(new OrderErrorDetail("Order already taken."));
 	} catch (Exception e) {
-	    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new OrderException(("Failed to create an order")));
+	    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new OrderErrorDetail(("Failed to update the order")));
 	}
     }
 
-    private OrderException getOrderException(BindingResult bindingResult) {
+    private OrderErrorDetail getOrderException(BindingResult bindingResult) {
 	StringBuilder messageBuilder = new StringBuilder();
 	bindingResult.getAllErrors().stream().forEach(fieldError -> {
 	    messageBuilder.append(fieldError.getDefaultMessage() + " ");
 	});
-	return new OrderException(messageBuilder.toString());
+	return new OrderErrorDetail(messageBuilder.toString());
     }
 
 }
