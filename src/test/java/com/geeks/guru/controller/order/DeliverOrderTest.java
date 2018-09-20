@@ -11,7 +11,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.geeks.guru.dto.order.DeliveryOrder;
-import com.geeks.guru.dto.order.DeliveryOrderRequest;
 import com.geeks.guru.dto.order.DeliveryOrderStatus;
 import com.geeks.guru.dto.order.DeliveryStatus;
 
@@ -27,16 +26,10 @@ public abstract class DeliverOrderTest {
     protected List<DeliveryOrder> getMockDeliveryOrdes() {
 	List<DeliveryOrder> orders = new ArrayList<>();
 
-	final DeliveryOrder order1 = new DeliveryOrder();
-	order1.setId(1);
-	order1.setDistance("23 km");
-	order1.setStatus(DeliveryStatus.UNASSIGN);
+	final DeliveryOrder order1 = new DeliveryOrder(1, 23, DeliveryStatus.UNASSIGN);
 	orders.add(order1);
 
-	final DeliveryOrder order2 = new DeliveryOrder();
-	order2.setId(2);
-	order2.setDistance("93.3 km");
-	order2.setStatus(DeliveryStatus.UNASSIGN);
+	final DeliveryOrder order2 = new DeliveryOrder(2, 93, DeliveryStatus.UNASSIGN);
 	orders.add(order2);
 
 	return orders;
@@ -44,15 +37,6 @@ public abstract class DeliverOrderTest {
 
     protected DeliveryOrder getMockOrder() {
 	return getMockDeliveryOrdes().get(0);
-    }
-
-    protected DeliveryOrderRequest getMockDeliveryRequest() {
-	DeliveryOrderRequest orderRequest = new DeliveryOrderRequest();
-	Double[] origin = { 32.9697, -96.80322 };
-	orderRequest.setOrigin(origin);
-	Double[] detination = { 32.9697, -96.80322 };
-	orderRequest.setDestination(detination);
-	return orderRequest;
     }
 
     protected DeliveryOrderStatus getMockUpdateStatus(String status) {

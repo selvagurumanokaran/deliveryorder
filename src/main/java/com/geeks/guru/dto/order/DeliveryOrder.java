@@ -11,14 +11,20 @@ public class DeliveryOrder {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
-    private String distance;
+    private long distance;
     private DeliveryStatus status;
 
     public DeliveryOrder() {
 
     }
 
-    public DeliveryOrder(String distance, DeliveryStatus status) {
+    public DeliveryOrder(long distance, DeliveryStatus status) {
+	this.distance = distance;
+	this.status = status;
+    }
+
+    public DeliveryOrder(int id, long distance, DeliveryStatus status) {
+	this.id = id;
 	this.distance = distance;
 	this.status = status;
     }
@@ -27,24 +33,12 @@ public class DeliveryOrder {
 	return id;
     }
 
-    public void setId(int id) {
-	this.id = id;
-    }
-
-    public String getDistance() {
+    public long getDistance() {
 	return distance;
-    }
-
-    public void setDistance(String distance) {
-	this.distance = distance;
     }
 
     public DeliveryStatus getStatus() {
 	return status;
-    }
-
-    public void setStatus(DeliveryStatus status) {
-	this.status = status;
     }
 
 }

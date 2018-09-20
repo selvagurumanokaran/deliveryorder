@@ -130,7 +130,9 @@ public class OrdersIntegrationTest extends DeliverOrderTest {
 	});
 
 	// Test creating orders
-	final DeliveryOrderRequest orderRequest = getMockDeliveryRequest();
+	Double[] origin = { 32.9697, -96.80322 };
+	Double[] destination = { 32.9697, -96.80322 };
+	DeliveryOrderRequest orderRequest = new DeliveryOrderRequest(origin, destination);
 	mvc.perform(MockMvcRequestBuilders.post("/order").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(orderRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)).andExpect(status().isOk())
 		.andDo(new ResultHandler() {
 		    @Override
@@ -141,27 +143,24 @@ public class OrdersIntegrationTest extends DeliverOrderTest {
 		});
 
 	// Test creating orders with invalid payload
-	orderRequest.setDestination(new Double[] { 12.90 });
-	mvc.perform(MockMvcRequestBuilders.post("/order").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(orderRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-		.andExpect(status().isInternalServerError());
+	destination = new Double[] { 12.90 };
+	orderRequest = new DeliveryOrderRequest(origin, destination);
+	mvc.perform(MockMvcRequestBuilders.post("/order").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(orderRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)).andExpect(status().isBadRequest());
 
-	orderRequest.setDestination(null);
-	mvc.perform(MockMvcRequestBuilders.post("/order").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(orderRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-		.andExpect(status().isInternalServerError());
+	orderRequest = new DeliveryOrderRequest(origin, null);
+	mvc.perform(MockMvcRequestBuilders.post("/order").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(orderRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)).andExpect(status().isBadRequest());
 
-	orderRequest.setOrigin(null);
-	mvc.perform(MockMvcRequestBuilders.post("/order").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(orderRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-		.andExpect(status().isInternalServerError());
+	orderRequest = new DeliveryOrderRequest(null, null);
+	mvc.perform(MockMvcRequestBuilders.post("/order").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(orderRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)).andExpect(status().isBadRequest());
 
-	orderRequest.setDestination(new Double[] { 12.90, 23.90 });
-	orderRequest.setOrigin(null);
-	mvc.perform(MockMvcRequestBuilders.post("/order").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(orderRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-		.andExpect(status().isInternalServerError());
+	destination = new Double[] { 12.90 };
+	orderRequest = new DeliveryOrderRequest(null, destination);
+	mvc.perform(MockMvcRequestBuilders.post("/order").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(orderRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)).andExpect(status().isBadRequest());
 
 	// Invalid orgin
-	orderRequest.setOrigin(new Double[] { 89.17, 98.90 });
-	mvc.perform(MockMvcRequestBuilders.post("/order").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(orderRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-		.andExpect(status().isInternalServerError());
+	origin = new Double[] { 89.17, 98.90 };
+	orderRequest = new DeliveryOrderRequest(origin, destination);
+	mvc.perform(MockMvcRequestBuilders.post("/order").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(orderRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)).andExpect(status().isBadRequest());
 
 	DeliveryOrderStatus updateRequest = getMockUpdateStatus("taken");
 	// Test update order
@@ -195,22 +194,12 @@ public class OrdersIntegrationTest extends DeliverOrderTest {
 		    }
 		});
 
-	updateRequest.setStatus(null);
+	updateRequest = new DeliveryOrderStatus(null);
 	mvc.perform(MockMvcRequestBuilders.put("/order/13").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(updateRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)).andExpect(status().isBadRequest());
 
     }
 
     private void saveDeliveryOrdes() {
-	final DeliveryOrder order1 = new DeliveryOrder();
-	order1.setId(1);
-	order1.setDistance("23 km");
-	order1.setStatus(DeliveryStatus.UNASSIGN);
-	ordersRepo.saveAndFlush(order1);
-
-	final DeliveryOrder order2 = new DeliveryOrder();
-	order2.setId(2);
-	order2.setDistance("93.3 km");
-	order2.setStatus(DeliveryStatus.UNASSIGN);
-	ordersRepo.saveAndFlush(order2);
+	getMockDeliveryOrdes().stream().forEach(ordersRepo::saveAndFlush);
     }
 }

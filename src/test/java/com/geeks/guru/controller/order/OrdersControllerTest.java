@@ -54,14 +54,16 @@ public class OrdersControllerTest extends DeliverOrderTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testCreateOrder() throws Exception {
-	DeliveryOrderRequest orderRequest = getMockDeliveryRequest();
+	Double[] origin = { 32.9697, -96.80322 };
+	Double[] destination = { 32.9697, -96.80322 };
+	DeliveryOrderRequest orderRequest = new DeliveryOrderRequest(origin, destination);
 	doReturn(false).when(bindingResult).hasErrors();
 	doReturn(getMockOrder()).when(ordersService).createOrder(orderRequest);
 	ResponseEntity<DeliveryOrder> responseEntity = (ResponseEntity<DeliveryOrder>) subject.createOrder(orderRequest, bindingResult);
 	assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
 	assertEquals(responseEntity.getBody().getId(), 1);
 
-	doThrow(NullPointerException.class).when(ordersService).createOrder(orderRequest);
+	doReturn(null).when(ordersService).createOrder(orderRequest);
 	ResponseEntity<OrderErrorDetail> responseError = (ResponseEntity<OrderErrorDetail>) subject.createOrder(orderRequest, bindingResult);
 	assertEquals(responseError.getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
 	assertEquals(responseError.getBody().getError(), "Failed to calculate distance. Please provide valid coordinates.");
@@ -73,7 +75,7 @@ public class OrdersControllerTest extends DeliverOrderTest {
 
 	doReturn(true).when(bindingResult).hasErrors();
 	responseError = (ResponseEntity<OrderErrorDetail>) subject.createOrder(orderRequest, bindingResult);
-	assertEquals(responseError.getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
+	assertEquals(responseError.getStatusCode(), HttpStatus.BAD_REQUEST);
     }
 
     @SuppressWarnings("unchecked")

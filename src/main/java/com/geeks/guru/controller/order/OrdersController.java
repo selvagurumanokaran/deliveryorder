@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.geeks.guru.dto.order.DeliveryOrder;
 import com.geeks.guru.dto.order.DeliveryOrderRequest;
 import com.geeks.guru.dto.order.DeliveryOrderStatus;
 import com.geeks.guru.dto.order.DeliveryStatus;
@@ -43,11 +44,13 @@ public class OrdersController {
     @PostMapping(value = "/order", consumes = { APPLICATION_JSON_UTF8_VALUE }, produces = { APPLICATION_JSON_UTF8_VALUE })
     public ResponseEntity<?> createOrder(@Valid @RequestBody DeliveryOrderRequest request, BindingResult bindingResult) throws Exception {
 	if (bindingResult.hasErrors()) {
-	    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(getOrderException(bindingResult));
+	    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(getOrderErrorDetail(bindingResult));
 	}
 	try {
-	    return ResponseEntity.ok(ordersService.createOrder(request));
-	} catch (NullPointerException e) {
+	    DeliveryOrder order = ordersService.createOrder(request);
+	    if (order != null) {
+		return ResponseEntity.ok(order);
+	    }
 	    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new OrderErrorDetail(("Failed to calculate distance. Please provide valid coordinates.")));
 	} catch (Exception e) {
 	    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new OrderErrorDetail(("Failed to create an order.")));
@@ -58,7 +61,7 @@ public class OrdersController {
     public ResponseEntity<?> updateOrder(@PathVariable String id, @Valid @RequestBody DeliveryOrderStatus updateRequest, BindingResult bindingResult) {
 	try {
 	    if (bindingResult.hasErrors()) {
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(getOrderException(bindingResult));
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(getOrderErrorDetail(bindingResult));
 	    }
 	    try {
 		ordersService.findOrderById(id);
@@ -76,7 +79,7 @@ public class OrdersController {
 	}
     }
 
-    private OrderErrorDetail getOrderException(BindingResult bindingResult) {
+    private OrderErrorDetail getOrderErrorDetail(BindingResult bindingResult) {
 	StringBuilder messageBuilder = new StringBuilder();
 	bindingResult.getAllErrors().stream().forEach(fieldError -> {
 	    messageBuilder.append(fieldError.getDefaultMessage() + " ");

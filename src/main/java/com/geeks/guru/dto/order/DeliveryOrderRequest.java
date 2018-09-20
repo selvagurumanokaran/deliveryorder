@@ -13,20 +13,22 @@ public class DeliveryOrderRequest {
     @Size(min = 2, max = 2, message = "Destination must contain exactly one Latitude and one Longtitude.")
     private Double[] destination;
 
+    public DeliveryOrderRequest() {
+
+    }
+
+    public DeliveryOrderRequest(Double[] origin, Double[] destination) {
+	super();
+	this.origin = origin;
+	this.destination = destination;
+    }
+
     public Double[] getOrigin() {
 	return origin;
     }
 
     public Double[] getDestination() {
 	return destination;
-    }
-
-    public void setOrigin(Double[] origin) {
-	this.origin = origin;
-    }
-
-    public void setDestination(Double[] destination) {
-	this.destination = destination;
     }
 
 }

@@ -21,14 +21,16 @@ public class OrdersService {
     private DistanceCalculator distanceCalculator;
 
     public List<DeliveryOrder> getAllOrders(Pageable pageable) {
-	return (List<DeliveryOrder>) ordersRepository.findAllPagedOrder(pageable);
+	return ordersRepository.findAll(pageable).getContent();
     }
 
     public DeliveryOrder createOrder(DeliveryOrderRequest request) throws Exception {
 	Double[] origins = request.getOrigin();
 	Double[] destinations = request.getDestination();
-	String distance = distanceCalculator.calculateDistance(origins, destinations);
-	return ordersRepository.save(new DeliveryOrder(distance, DeliveryStatus.UNASSIGN));
+	long distance = distanceCalculator.calculateDistance(origins, destinations);
+	if (distance > -1)
+	    return ordersRepository.save(new DeliveryOrder(distance, DeliveryStatus.UNASSIGN));
+	return null;
     }
 
     public int updateStatus(String id) {
