@@ -6,14 +6,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultHandler;
@@ -23,19 +19,19 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.geeks.guru.controller.order.DeliverOrderTest;
 import com.geeks.guru.dto.order.DeliveryOrder;
+import com.geeks.guru.dto.order.DeliveryOrderRequest;
+import com.geeks.guru.dto.order.DeliveryOrderStatus;
 import com.geeks.guru.dto.order.DeliveryStatus;
 import com.geeks.guru.dto.order.OrderErrorDetail;
 import com.geeks.guru.repository.order.OrdersRepository;
 import com.geeks.guru.service.order.OrdersService;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
 @Transactional
 @Rollback(true)
 @EnableWebMvc
-@AutoConfigureMockMvc
-public class OrdersIntegrationTest {
+public class OrdersIntegrationTest extends DeliverOrderTest {
 
     @Autowired
     private MockMvc mvc;
@@ -50,7 +46,7 @@ public class OrdersIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Test
-    public void testGetAllOrders() throws Exception {
+    public void testDeliveryOrders() throws Exception {
 	saveDeliveryOrdes();
 	mvc.perform(MockMvcRequestBuilders.get("/orders").accept(MediaType.APPLICATION_JSON_UTF8_VALUE)).andExpect(status().isOk()).andDo(new ResultHandler() {
 
@@ -61,11 +57,8 @@ public class OrdersIntegrationTest {
 		assertEquals(deliveryOrders.size(), 2);
 	    }
 	});
-    }
 
-    @Test
-    public void testGetAllOrdersWithOnlyPageSize() throws Exception {
-	saveDeliveryOrdes();
+	// Test fetching orders with only page size
 	mvc.perform(MockMvcRequestBuilders.get("/orders?page=0").accept(MediaType.APPLICATION_JSON_UTF8_VALUE)).andExpect(status().isOk()).andDo(new ResultHandler() {
 
 	    @Override
@@ -94,11 +87,8 @@ public class OrdersIntegrationTest {
 		assertEquals(errorDetail.getError(), "Failed to fetch orders.");
 	    }
 	});
-    }
 
-    @Test
-    public void testGetAllOrdersWithSizeAndLimit() throws Exception {
-	saveDeliveryOrdes();
+	// Test fetching orders with page size and limit
 	mvc.perform(MockMvcRequestBuilders.get("/orders?page=0&limit=5").accept(MediaType.APPLICATION_JSON_UTF8_VALUE)).andExpect(status().isOk()).andDo(new ResultHandler() {
 
 	    @Override
@@ -138,23 +128,89 @@ public class OrdersIntegrationTest {
 		assertEquals(errorDetail.getError(), "Failed to fetch orders.");
 	    }
 	});
+
+	// Test creating orders
+	final DeliveryOrderRequest orderRequest = getMockDeliveryRequest();
+	mvc.perform(MockMvcRequestBuilders.post("/order").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(orderRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)).andExpect(status().isOk())
+		.andDo(new ResultHandler() {
+		    @Override
+		    public void handle(MvcResult result) throws Exception {
+			final DeliveryOrder oder = objectMapper.readValue(result.getResponse().getContentAsByteArray(), DeliveryOrder.class);
+			assertEquals(oder.getId(), 3);
+		    }
+		});
+
+	// Test creating orders with invalid payload
+	orderRequest.setDestination(new Double[] { 12.90 });
+	mvc.perform(MockMvcRequestBuilders.post("/order").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(orderRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+		.andExpect(status().isInternalServerError());
+
+	orderRequest.setDestination(null);
+	mvc.perform(MockMvcRequestBuilders.post("/order").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(orderRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+		.andExpect(status().isInternalServerError());
+
+	orderRequest.setOrigin(null);
+	mvc.perform(MockMvcRequestBuilders.post("/order").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(orderRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+		.andExpect(status().isInternalServerError());
+
+	orderRequest.setDestination(new Double[] { 12.90, 23.90 });
+	orderRequest.setOrigin(null);
+	mvc.perform(MockMvcRequestBuilders.post("/order").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(orderRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+		.andExpect(status().isInternalServerError());
+
+	// Invalid orgin
+	orderRequest.setOrigin(new Double[] { 89.17, 98.90 });
+	mvc.perform(MockMvcRequestBuilders.post("/order").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(orderRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+		.andExpect(status().isInternalServerError());
+
+	DeliveryOrderStatus updateRequest = getMockUpdateStatus("taken");
+	// Test update order
+	mvc.perform(MockMvcRequestBuilders.put("/order/1").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(updateRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)).andExpect(status().isOk())
+		.andDo(new ResultHandler() {
+
+		    @Override
+		    public void handle(MvcResult result) throws Exception {
+			final DeliveryOrderStatus updateResult = objectMapper.readValue(result.getResponse().getContentAsByteArray(), DeliveryOrderStatus.class);
+			assertEquals(updateResult.getStatus(), DeliveryStatus.SUCCESS.name());
+		    }
+		});
+
+	mvc.perform(MockMvcRequestBuilders.put("/order/1").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(updateRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)).andExpect(status().isConflict())
+		.andDo(new ResultHandler() {
+
+		    @Override
+		    public void handle(MvcResult result) throws Exception {
+			final OrderErrorDetail errorDetail = objectMapper.readValue(result.getResponse().getContentAsByteArray(), OrderErrorDetail.class);
+			assertEquals(errorDetail.getError(), "Order already taken.");
+		    }
+		});
+
+	mvc.perform(MockMvcRequestBuilders.put("/order/13").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(updateRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)).andExpect(status().isBadRequest())
+		.andDo(new ResultHandler() {
+
+		    @Override
+		    public void handle(MvcResult result) throws Exception {
+			final OrderErrorDetail errorDetail = objectMapper.readValue(result.getResponse().getContentAsByteArray(), OrderErrorDetail.class);
+			assertEquals(errorDetail.getError(), "Order does not exist.");
+		    }
+		});
+
+	updateRequest.setStatus(null);
+	mvc.perform(MockMvcRequestBuilders.put("/order/13").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).content(objectMapper.writeValueAsBytes(updateRequest)).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)).andExpect(status().isBadRequest());
+
     }
 
-    @Test
-    public void testCreateOrder() {
-	//mvc.perform(MockMvcRequestBuilders.post("/order").accept(MediaType.APPLICATION_JSON_UTF8_VALUE).);
-    }
     private void saveDeliveryOrdes() {
 	final DeliveryOrder order1 = new DeliveryOrder();
 	order1.setId(1);
 	order1.setDistance("23 km");
 	order1.setStatus(DeliveryStatus.UNASSIGN);
-	ordersRepo.save(order1);
+	ordersRepo.saveAndFlush(order1);
 
 	final DeliveryOrder order2 = new DeliveryOrder();
 	order2.setId(2);
 	order2.setDistance("93.3 km");
 	order2.setStatus(DeliveryStatus.UNASSIGN);
-	ordersRepo.save(order2);
+	ordersRepo.saveAndFlush(order2);
     }
 }

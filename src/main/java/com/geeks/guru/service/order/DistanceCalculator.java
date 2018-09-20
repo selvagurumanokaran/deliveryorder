@@ -13,7 +13,7 @@ public class DistanceCalculator {
     @Value("${com.geeks.guru.google.apikey}")
     private String apiKey;
 
-    public String calculateDistance(Double[] origin, Double[] destination) throws NullPointerException, Exception {
+    public String calculateDistance(Double[] origin, Double[] destination) throws Exception {
 	GeoApiContext context = new GeoApiContext().setApiKey(apiKey);
 	String[] origins = { origin[0] + "," + origin[1] };
 	String[] destinations = { destination[0] + "," + destination[1] };

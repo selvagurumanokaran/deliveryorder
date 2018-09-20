@@ -4,23 +4,16 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.validation.BindingResult;
 
 import com.geeks.guru.dto.order.DeliveryOrder;
@@ -30,10 +23,7 @@ import com.geeks.guru.dto.order.DeliveryStatus;
 import com.geeks.guru.dto.order.OrderErrorDetail;
 import com.geeks.guru.service.order.OrdersService;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureMockMvc
-public class OrdersControllerTest {
+public class OrdersControllerTest extends DeliverOrderTest {
 
     @InjectMocks
     @Autowired
@@ -44,11 +34,6 @@ public class OrdersControllerTest {
 
     @Mock
     private BindingResult bindingResult;
-
-    @Before
-    public void injectMocks() {
-	MockitoAnnotations.initMocks(this);
-    }
 
     @SuppressWarnings("unchecked")
     @Test
@@ -121,41 +106,6 @@ public class OrdersControllerTest {
 	responseError = (ResponseEntity<OrderErrorDetail>) subject.updateOrder("1", updateRequest, bindingResult);
 	assertEquals(responseError.getStatusCode(), HttpStatus.BAD_REQUEST);
 
-    }
-
-    private DeliveryOrderStatus getMockUpdateStatus(String status) {
-	return new DeliveryOrderStatus(status);
-    }
-
-    private DeliveryOrderRequest getMockDeliveryRequest() {
-	DeliveryOrderRequest orderRequest = new DeliveryOrderRequest();
-	Double[] origin = { 32.9697, -96.80322 };
-	orderRequest.setOrigin(origin);
-	Double[] detination = { 32.9697, -96.80322 };
-	orderRequest.setDestination(detination);
-	return orderRequest;
-    }
-
-    private List<DeliveryOrder> getMockDeliveryOrdes() {
-	List<DeliveryOrder> orders = new ArrayList<>();
-
-	final DeliveryOrder order1 = new DeliveryOrder();
-	order1.setId(1);
-	order1.setDistance("23 km");
-	order1.setStatus(DeliveryStatus.UNASSIGN);
-	orders.add(order1);
-
-	final DeliveryOrder order2 = new DeliveryOrder();
-	order2.setId(2);
-	order2.setDistance("93.3 km");
-	order2.setStatus(DeliveryStatus.UNASSIGN);
-	orders.add(order2);
-
-	return orders;
-    }
-
-    private DeliveryOrder getMockOrder() {
-	return getMockDeliveryOrdes().get(0);
     }
 
 }
