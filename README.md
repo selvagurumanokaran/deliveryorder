@@ -1,4 +1,4 @@
-# deliveryorder
+# Delivery Order
 
 # Prerequisties
 Docker should be installed.
